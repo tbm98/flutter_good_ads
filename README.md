@@ -7,10 +7,11 @@
   * Load safety with interval
 
 * Interstitial
-  * Load and safety with interval 
+  * Load and show safety with interval 
 
 
-## Getting started
+## Getting started (see more in example)
+
 
 ### Import
 ```
