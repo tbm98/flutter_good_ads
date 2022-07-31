@@ -3,11 +3,12 @@ know whether this package might be useful for them.
 
 ## Features
 
-- Banner
--- Auto config and load for you
--- Load safety with interval
-- Interstitial
--- Load and safety with interval 
+* Banner
+** Auto config and load for you
+**Load safety with interval
+
+* Interstitial
+** Load and safety with interval 
 
 
 ## Getting started
@@ -48,7 +49,7 @@ GoodBanner(
 
 ### Interstitial
 
--- Declare a GoodInterstitial
+* Declare a GoodInterstitial
 ```dart
   final interstitialAd = const GoodInterstitial(
     adUnitId: 'ca-app-pub-3940256099942544/8691691433',
@@ -57,7 +58,7 @@ GoodBanner(
   );
 ```
 
--- Call load() at somewhere (ex: initState)
+* Call load() at somewhere (ex: initState)
 ```dart
   @override
   void initState() {
@@ -66,7 +67,7 @@ GoodBanner(
   }
 ```
 
--- Call show() when you want
+* Call show() when you want
 ```dart
   if (_counter % 5 == 0) {
     interstitialAd.show(reloadAfterShow: true);
