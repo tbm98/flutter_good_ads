@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:andesgroup_common/common.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -13,7 +12,7 @@ class GoodInterstitial {
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
   const GoodInterstitial({
     required this.adUnitId,
-    required this.adRequest,
+    this.adRequest = const AdRequest(),
     this.interval = 60000,
   });
 

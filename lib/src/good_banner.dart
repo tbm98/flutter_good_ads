@@ -10,7 +10,7 @@ class GoodBanner extends StatefulWidget {
   const GoodBanner({
     Key? key,
     required this.adUnitId,
-    required this.adRequest,
+    this.adRequest = const AdRequest(),
     this.adSize = AdSize.banner,
     this.interval = 60000,
   }) : super(key: key);
