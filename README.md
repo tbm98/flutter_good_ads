@@ -4,7 +4,7 @@
 
 * Banner
   * Auto config and load for you
-  *Load safety with interval
+  * Load safety with interval
 
 * Interstitial
   * Load and safety with interval 
@@ -72,9 +72,3 @@ GoodBanner(
     interstitialAd.show(reloadAfterShow: true);
   }
 ```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
