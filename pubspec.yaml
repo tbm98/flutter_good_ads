@@ -1,7 +1,9 @@
 name: flutter_good_ads
-description: A new Flutter project.
+description: A package help you use google_mobile_ads with safety and easy..
 version: 0.0.1
-homepage:
+homepage: https://github.com/tbm98/flutter_good_ads
+repository: https://github.com/tbm98/flutter_good_ads
+issue_tracker: https://github.com/tbm98/flutter_good_ads/issues
 
 environment:
   sdk: ">=2.17.6 <3.0.0"
