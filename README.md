@@ -1,35 +1,76 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
-
 TODO: Put a short description of the package here that helps potential users
 know whether this package might be useful for them.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- Banner
+-- Auto config and load for you
+-- Load safety with interval
+- Interstitial
+-- Load and safety with interval 
+
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+### Import
+```
+flutter pub add flutter_good_ads
+```
+and
+```dart
+import 'package:flutter_good_ads/flutter_good_ads.dart';
+```
+
+### Config main function like this
+```dart
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
+
+  runApp(MyApp());
+}
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+### Banner
+
+Put this block everywhere you want
 
 ```dart
-const like = 'sample';
+GoodBanner(
+  adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+  adRequest: AdRequest(),
+  interval: 60000,
+  adSize: AdSize.banner,
+)
+```
+
+### Interstitial
+
+-- Declare a GoodInterstitial
+```dart
+  final interstitialAd = const GoodInterstitial(
+    adUnitId: 'ca-app-pub-3940256099942544/8691691433',
+    adRequest: AdRequest(),
+    interval: 60000,
+  );
+```
+
+-- Call load() at somewhere (ex: initState)
+```dart
+  @override
+  void initState() {
+    super.initState();
+    interstitialAd.load();
+  }
+```
+
+-- Call show() when you want
+```dart
+  if (_counter % 5 == 0) {
+    interstitialAd.show(reloadAfterShow: true);
+  }
 ```
 
 ## Additional information
