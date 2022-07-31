@@ -1,14 +1,13 @@
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+# good_flutter_ads
 
 ## Features
 
 * Banner
-** Auto config and load for you
-**Load safety with interval
+  * Auto config and load for you
+  *Load safety with interval
 
 * Interstitial
-** Load and safety with interval 
+  * Load and safety with interval 
 
 
 ## Getting started
@@ -49,7 +48,7 @@ GoodBanner(
 
 ### Interstitial
 
-* Declare a GoodInterstitial
+1. Declare a GoodInterstitial
 ```dart
   final interstitialAd = const GoodInterstitial(
     adUnitId: 'ca-app-pub-3940256099942544/8691691433',
@@ -58,7 +57,7 @@ GoodBanner(
   );
 ```
 
-* Call load() at somewhere (ex: initState)
+2. Call load() at somewhere (ex: initState)
 ```dart
   @override
   void initState() {
@@ -67,7 +66,7 @@ GoodBanner(
   }
 ```
 
-* Call show() when you want
+3. Call show() when you want
 ```dart
   if (_counter % 5 == 0) {
     interstitialAd.show(reloadAfterShow: true);
