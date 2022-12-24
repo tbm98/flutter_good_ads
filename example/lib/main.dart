@@ -91,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Spacer(),
             const Text(
               'You have pushed the button this many times:',
             ),
@@ -98,11 +99,18 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
-            const GoodBanner(
+            const GoodBannerStandard(
               adUnitId: 'ca-app-pub-3940256099942544/6300978111',
               adRequest: AdRequest(),
               interval: 60000,
               adSize: AdSize.banner,
+            ),
+            GoodBannerAdaptiveInline(
+              adUnitId: 'ca-app-pub-3940256099942544/9214589741',
+            ),
+            Spacer(),
+            GoodBannerAdaptiveAnchored(
+              adUnitId: 'ca-app-pub-3940256099942544/6300978111',
             ),
           ],
         ),
