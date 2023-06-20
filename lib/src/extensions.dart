@@ -15,3 +15,11 @@ extension PrintInterstitial on InterstitialAd {
     return responseInfo.toString();
   }
 }
+
+
+
+extension PrintRewardedAd on RewardedAd {
+  String print() {
+    return responseInfo.toString();
+  }
+}
