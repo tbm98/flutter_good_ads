@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:andesgroup_common/common.dart';
+import 'package:common/common.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -30,30 +30,30 @@ class GoodInterstitial {
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (InterstitialAd ad) {
             ad.fullScreenContentCallback = FullScreenContentCallback(
-              onAdShowedFullScreenContent: (InterstitialAd ad) => debug(
+              onAdShowedFullScreenContent: (InterstitialAd ad) => printDebug(
                   'interstitial_showedFullScreenContent($adUnitId): ${ad.print()}'),
               onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                debug(
+                printDebug(
                     'interstitial_dismissedFullScreenContent($adUnitId): ${ad.print()}');
                 ad.dispose();
                 _instance.remove(adUnitId);
               },
               onAdFailedToShowFullScreenContent:
                   (InterstitialAd ad, AdError error) {
-                debug(
+                printDebug(
                     'interstitial_failedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
                 ad.dispose();
                 _instance.remove(adUnitId);
               },
               onAdImpression: (InterstitialAd ad) =>
-                  debug('interstitial_impression($adUnitId): ${ad.print()}'),
+                  printDebug('interstitial_impression($adUnitId): ${ad.print()}'),
             );
             _instance[adUnitId] = ad;
-            debug('interstitial_loaded($adUnitId): ${ad.print()}');
+            printDebug('interstitial_loaded($adUnitId): ${ad.print()}');
             result.complete(ad);
           },
           onAdFailedToLoad: (LoadAdError error) {
-            debug(
+            printDebug(
                 'interstitial_failedToLoaded($adUnitId): ${error.toString()}');
             result.completeError(error);
           },

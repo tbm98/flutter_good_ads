@@ -1,4 +1,4 @@
-import 'package:andesgroup_common/common.dart';
+import 'package:common/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -28,7 +28,7 @@ class _GoodBannerState extends State<GoodBanner> {
   late final BannerAdListener listener = BannerAdListener(
     // Called when an ad is successfully received.
     onAdLoaded: (Ad ad) {
-      debug('banner_loaded(${widget.adUnitId}): ${ad.responseInfo.toString()}');
+      printDebug('banner_loaded(${widget.adUnitId}): ${ad.responseInfo.toString()}');
       GoodBanner.lastImpressions
           .set(widget.adUnitId, DateTime.now().millisecondsSinceEpoch);
     },
@@ -36,17 +36,17 @@ class _GoodBannerState extends State<GoodBanner> {
     onAdFailedToLoad: (Ad ad, LoadAdError error) {
       // Dispose the ad here to free resources.
       ad.dispose();
-      debug(
+      printDebug(
           'banner_load_failed(${widget.adUnitId}): ${ad.responseInfo.toString()}, Error: ${error.toString()}');
     },
     // Called when an ad opens an overlay that covers the screen.
-    onAdOpened: (Ad ad) => debug(
+    onAdOpened: (Ad ad) => printDebug(
         'banner_opened(${widget.adUnitId}): ${ad.responseInfo.toString()}'),
     // Called when an ad removes an overlay that covers the screen.
-    onAdClosed: (Ad ad) => debug(
+    onAdClosed: (Ad ad) => printDebug(
         'banner_closed(${widget.adUnitId}): ${ad.responseInfo.toString()}'),
     // Called when an impression occurs on the ad.
-    onAdImpression: (Ad ad) => debug(
+    onAdImpression: (Ad ad) => printDebug(
         'banner_impression(${widget.adUnitId}): ${ad.responseInfo.toString()}'),
   );
 

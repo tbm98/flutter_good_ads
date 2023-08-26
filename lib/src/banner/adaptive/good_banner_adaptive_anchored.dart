@@ -1,4 +1,4 @@
-import 'package:andesgroup_common/common.dart';
+import 'package:common/common.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -35,7 +35,7 @@ class _GoodBannerAdaptiveAnchoredState
             MediaQuery.of(context).size.width.truncate());
 
     if (size == null) {
-      debug('Unable to get height of anchored banner.');
+      printDebug('Unable to get height of anchored banner.');
       return;
     }
 
@@ -45,7 +45,7 @@ class _GoodBannerAdaptiveAnchoredState
       request: widget.adRequest,
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
-          debug('$ad loaded: ${ad.responseInfo}');
+          printDebug('$ad loaded: ${ad.responseInfo}');
           setState(() {
             // When the ad is loaded, get the ad size and use it to set
             // the height of the ad container.
@@ -54,7 +54,7 @@ class _GoodBannerAdaptiveAnchoredState
           });
         },
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
-          debug('Anchored adaptive banner failedToLoad: $error');
+          printDebug('Anchored adaptive banner failedToLoad: $error');
           ad.dispose();
         },
       ),
