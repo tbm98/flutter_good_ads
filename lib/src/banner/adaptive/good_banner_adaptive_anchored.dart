@@ -76,7 +76,7 @@ class _GoodBannerAdaptiveAnchoredState
           ad.dispose();
         },
         onAdImpression: (Ad ad) {
-          printDebug('$ad impression: ${ad.responseInfo}');
+          printDebug('impression: ${ad.responseInfo}');
         },
       ),
     );
