@@ -1,5 +1,6 @@
 import 'package:common/common.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class GoodBannerAdaptiveAnchored extends StatefulWidget {
@@ -7,10 +8,12 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
     Key? key,
     required this.adUnitId,
     this.adRequest = const AdRequest(),
+    this.interval = 60000,
   }) : super(key: key);
 
   final String adUnitId;
   final AdRequest adRequest;
+  final int interval;
 
   @override
   State<GoodBannerAdaptiveAnchored> createState() =>
@@ -25,7 +28,22 @@ class _GoodBannerAdaptiveAnchoredState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadAd();
+    _initAd();
+  }
+
+  Future<void> _initAd() async {
+    final lastImpressions = await getLastImpressions(widget.adUnitId);
+    if (DateTime.now().millisecondsSinceEpoch - lastImpressions >
+        widget.interval) {
+      _loadAd();
+    } else {
+      // if initState but can not load immediately, delay and then load
+      Future.delayed(Duration(milliseconds: widget.interval), () {
+        if (_isLoaded == false) {
+          _loadAd();
+        }
+      });
+    }
   }
 
   Future<void> _loadAd() async {
@@ -57,8 +75,13 @@ class _GoodBannerAdaptiveAnchoredState
           printDebug('Anchored adaptive banner failedToLoad: $error');
           ad.dispose();
         },
+        onAdImpression: (Ad ad) {
+          printDebug('$ad impression: ${ad.responseInfo}');
+        },
       ),
     );
+    await setLastImpressions(
+        widget.adUnitId, DateTime.now().millisecondsSinceEpoch);
     return _anchoredAdaptiveAd!.load();
   }
 
