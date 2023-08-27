@@ -97,4 +97,10 @@ class _GoodBannerAdaptiveAnchoredState
       return const SizedBox.shrink();
     }
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _anchoredAdaptiveAd?.dispose();
+  }
 }
