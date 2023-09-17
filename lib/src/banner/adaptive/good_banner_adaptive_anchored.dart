@@ -9,11 +9,13 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
     required this.adUnitId,
     this.adRequest = const AdRequest(),
     this.interval = 60000,
+    this.adsPlaceholderColor,
   }) : super(key: key);
 
-  final String adUnitId;
+  final String? adUnitId;
   final AdRequest adRequest;
   final int interval;
+  final Color? adsPlaceholderColor;
 
   @override
   State<GoodBannerAdaptiveAnchored> createState() =>
@@ -24,15 +26,38 @@ class _GoodBannerAdaptiveAnchoredState
     extends State<GoodBannerAdaptiveAnchored> {
   BannerAd? _anchoredAdaptiveAd;
   bool _isLoaded = false;
+  AnchoredAdaptiveBannerAdSize? size;
+  Size? defaultBannerSize;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _initAd();
+    computeDefaultBannerSize();
+    if (widget.adUnitId != null) {
+      _initAd();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant GoodBannerAdaptiveAnchored oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.adUnitId != null) {
+        _initAd();
+      }
+    });
+  }
+
+  void computeDefaultBannerSize() {
+    final width = MediaQuery.of(context).size.width;
+    final height = width * 0.1557;
+    setState(() {
+      defaultBannerSize = Size(width, height);
+    });
   }
 
   Future<void> _initAd() async {
-    final lastImpressions = await getLastImpressions(widget.adUnitId);
+    final lastImpressions = await getLastImpressions(widget.adUnitId!);
     if (DateTime.now().millisecondsSinceEpoch - lastImpressions >
         widget.interval) {
       _loadAd();
@@ -48,9 +73,9 @@ class _GoodBannerAdaptiveAnchoredState
 
   Future<void> _loadAd() async {
     // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
-    final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-            MediaQuery.of(context).size.width.truncate());
+    size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+        MediaQuery.of(context).size.width.truncate());
+    setState(() {});
 
     if (size == null) {
       printDebug('Unable to get height of anchored banner.');
@@ -58,8 +83,8 @@ class _GoodBannerAdaptiveAnchoredState
     }
 
     _anchoredAdaptiveAd = BannerAd(
-      adUnitId: widget.adUnitId,
-      size: size,
+      adUnitId: widget.adUnitId!,
+      size: size!,
       request: widget.adRequest,
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
@@ -81,7 +106,7 @@ class _GoodBannerAdaptiveAnchoredState
       ),
     );
     await setLastImpressions(
-        widget.adUnitId, DateTime.now().millisecondsSinceEpoch);
+        widget.adUnitId!, DateTime.now().millisecondsSinceEpoch);
     return _anchoredAdaptiveAd!.load();
   }
 
@@ -94,7 +119,16 @@ class _GoodBannerAdaptiveAnchoredState
         child: AdWidget(ad: _anchoredAdaptiveAd!),
       );
     } else {
-      return const SizedBox.shrink();
+      return SizedBox(
+        width: defaultBannerSize?.width.toDouble(),
+        height: defaultBannerSize?.height.toDouble(),
+        child: Center(
+          child: Text(
+            'Ads placeholder',
+            style: TextStyle(color: widget.adsPlaceholderColor),
+          ),
+        ),
+      );
     }
   }
 
