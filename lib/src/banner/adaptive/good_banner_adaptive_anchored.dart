@@ -35,6 +35,8 @@ class _GoodBannerAdaptiveAnchoredState
     computeDefaultBannerSize();
     if (widget.adUnitId != null) {
       _initAd();
+    } else {
+      _hideAd();
     }
   }
 
@@ -44,6 +46,8 @@ class _GoodBannerAdaptiveAnchoredState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.adUnitId != null) {
         _initAd();
+      } else {
+        _hideAd();
       }
     });
   }
@@ -53,6 +57,13 @@ class _GoodBannerAdaptiveAnchoredState
     final height = width * 0.1557;
     setState(() {
       defaultBannerSize = Size(width, height);
+    });
+  }
+
+  void _hideAd() {
+    setState(() {
+      _anchoredAdaptiveAd = null;
+      _isLoaded = false;
     });
   }
 
@@ -82,6 +93,9 @@ class _GoodBannerAdaptiveAnchoredState
       return;
     }
 
+    if (widget.adUnitId == null) {
+      return;
+    }
     _anchoredAdaptiveAd = BannerAd(
       adUnitId: widget.adUnitId!,
       size: size!,
