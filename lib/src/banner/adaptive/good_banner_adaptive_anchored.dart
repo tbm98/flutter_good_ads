@@ -10,12 +10,14 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
     this.adRequest = const AdRequest(),
     this.interval = 60000,
     this.adsPlaceholderColor,
+    this.onLoadAdError,
   }) : super(key: key);
 
   final String? adUnitId;
   final AdRequest adRequest;
   final int interval;
   final Color? adsPlaceholderColor;
+  final void Function(Object, StackTrace)? onLoadAdError;
 
   @override
   State<GoodBannerAdaptiveAnchored> createState() =>
@@ -83,48 +85,52 @@ class _GoodBannerAdaptiveAnchoredState
   }
 
   Future<void> _loadAd() async {
-    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
-    size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-        MediaQuery.of(context).size.width.truncate());
-    
+    try {
+      // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+      size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+          MediaQuery.of(context).size.width.truncate());
 
-    if (size == null) {
-      printDebug('Unable to get height of anchored banner.');
-      return;
+      if (size == null) {
+        printDebug('Unable to get height of anchored banner.');
+        return;
+      }
+
+      setState(() {});
+
+      if (widget.adUnitId == null) {
+        return;
+      }
+
+      _anchoredAdaptiveAd = BannerAd(
+        adUnitId: widget.adUnitId!,
+        size: size!,
+        request: widget.adRequest,
+        listener: BannerAdListener(
+          onAdLoaded: (Ad ad) {
+            printDebug('$ad loaded: ${ad.responseInfo}');
+            setState(() {
+              // When the ad is loaded, get the ad size and use it to set
+              // the height of the ad container.
+              _anchoredAdaptiveAd = ad as BannerAd;
+              _isLoaded = true;
+            });
+          },
+          onAdFailedToLoad: (Ad ad, LoadAdError error) {
+            printDebug('Anchored adaptive banner failedToLoad: $error');
+            ad.dispose();
+          },
+          onAdImpression: (Ad ad) {
+            printDebug('impression: ${ad.responseInfo}');
+          },
+        ),
+      );
+      await setLastImpressions(
+          widget.adUnitId!, DateTime.now().millisecondsSinceEpoch);
+      return _anchoredAdaptiveAd!.load();
+    } catch (e, s) {
+      printError('loadAd', e, s);
+      widget.onLoadAdError?.call(e, s);
     }
-
-    setState(() {});
-
-    if (widget.adUnitId == null) {
-      return;
-    }
-    
-    _anchoredAdaptiveAd = BannerAd(
-      adUnitId: widget.adUnitId!,
-      size: size!,
-      request: widget.adRequest,
-      listener: BannerAdListener(
-        onAdLoaded: (Ad ad) {
-          printDebug('$ad loaded: ${ad.responseInfo}');
-          setState(() {
-            // When the ad is loaded, get the ad size and use it to set
-            // the height of the ad container.
-            _anchoredAdaptiveAd = ad as BannerAd;
-            _isLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (Ad ad, LoadAdError error) {
-          printDebug('Anchored adaptive banner failedToLoad: $error');
-          ad.dispose();
-        },
-        onAdImpression: (Ad ad) {
-          printDebug('impression: ${ad.responseInfo}');
-        },
-      ),
-    );
-    await setLastImpressions(
-        widget.adUnitId!, DateTime.now().millisecondsSinceEpoch);
-    return _anchoredAdaptiveAd!.load();
   }
 
   @override
