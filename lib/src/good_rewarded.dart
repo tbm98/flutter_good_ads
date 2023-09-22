@@ -62,22 +62,31 @@ class GoodRewarded {
   Future<void> show({
     bool reloadAfterShow = true,
     void Function(AdWithoutView, RewardItem)? onUserEarnedReward,
+    Function? onError,
   }) async {
     // Ad instance of adUnitId has loaded fail or already showed.
     if (_instance[adUnitId] == null) {
+      if (onError != null) {
+        onError();
+      }
       if (reloadAfterShow) {
         load();
       }
+
       return;
     }
     if (DateTime.now().millisecondsSinceEpoch - lastImpressions.get(adUnitId) > _interval.get(adUnitId)) {
       await _instance[adUnitId]!.show(
         onUserEarnedReward: onUserEarnedReward ?? (_, __) {},
-        
       );
       lastImpressions.set(adUnitId, DateTime.now().millisecondsSinceEpoch);
       if (reloadAfterShow) {
         load();
+      }
+    }
+    else {
+      if (onError != null) {
+        onError();
       }
     }
   }
