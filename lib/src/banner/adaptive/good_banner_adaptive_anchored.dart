@@ -86,16 +86,19 @@ class _GoodBannerAdaptiveAnchoredState
     // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
     size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
         MediaQuery.of(context).size.width.truncate());
-    setState(() {});
+    
 
     if (size == null) {
       printDebug('Unable to get height of anchored banner.');
       return;
     }
 
+    setState(() {});
+
     if (widget.adUnitId == null) {
       return;
     }
+    
     _anchoredAdaptiveAd = BannerAd(
       adUnitId: widget.adUnitId!,
       size: size!,
