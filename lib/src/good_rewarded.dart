@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:andesgroup_common/common.dart';
+import 'package:common/common.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -30,25 +30,25 @@ class GoodRewarded {
         rewardedAdLoadCallback: RewardedAdLoadCallback(
           onAdLoaded: (RewardedAd ad) {
             ad.fullScreenContentCallback = FullScreenContentCallback(
-              onAdShowedFullScreenContent: (RewardedAd ad) => debug('interstitial_showedFullScreenContent($adUnitId): ${ad.print()}'),
+              onAdShowedFullScreenContent: (RewardedAd ad) => printDebug('interstitial_showedFullScreenContent($adUnitId): ${ad.print()}'),
               onAdDismissedFullScreenContent: (RewardedAd ad) {
-                debug('interstitial_dismissedFullScreenContent($adUnitId): ${ad.print()}');
+                printDebug('interstitial_dismissedFullScreenContent($adUnitId): ${ad.print()}');
                 ad.dispose();
                 _instance.remove(adUnitId);
               },
               onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
-                debug('interstitial_failedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
+                printDebug('interstitial_failedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
                 ad.dispose();
                 _instance.remove(adUnitId);
               },
-              onAdImpression: (RewardedAd ad) => debug('interstitial_impression($adUnitId): ${ad.print()}'),
+              onAdImpression: (RewardedAd ad) => printDebug('interstitial_impression($adUnitId): ${ad.print()}'),
             );
             _instance[adUnitId] = ad;
-            debug('interstitial_loaded($adUnitId): ${ad.print()}');
+            printDebug('interstitial_loaded($adUnitId): ${ad.print()}');
             result.complete(ad);
           },
           onAdFailedToLoad: (LoadAdError error) {
-            debug('interstitial_failedToLoaded($adUnitId): ${error.toString()}');
+            printDebug('interstitial_failedToLoaded($adUnitId): ${error.toString()}');
             result.completeError(error);
           },
         ));
