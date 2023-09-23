@@ -1,13 +1,14 @@
 import 'dart:async';
 
-import 'package:andesgroup_common/common.dart';
+import 'package:common/common.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
+import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class GoodInterstitial {
-  static Map<String, int> lastImpressions = {};
   static final Map<String, InterstitialAd> _instance = {};
   static final Map<String, int> _interval = {};
+  static final Map<String, bool> _reloadAfterShow = {};
 
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
   const GoodInterstitial({
@@ -20,44 +21,51 @@ class GoodInterstitial {
   final AdRequest adRequest;
   final int interval;
 
-  /// return [InterstitialAd], or throw [LoadAdError] if error
-  Future<InterstitialAd> load() async {
+  Future<bool> load() async {
     _interval[adUnitId] = interval;
-    final Completer<InterstitialAd> result = Completer();
+    final Completer<bool> result = Completer();
     await InterstitialAd.load(
-        adUnitId: adUnitId,
-        request: adRequest,
-        adLoadCallback: InterstitialAdLoadCallback(
-          onAdLoaded: (InterstitialAd ad) {
-            ad.fullScreenContentCallback = FullScreenContentCallback(
-              onAdShowedFullScreenContent: (InterstitialAd ad) => debug(
-                  'interstitial_showedFullScreenContent($adUnitId): ${ad.print()}'),
-              onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                debug(
-                    'interstitial_dismissedFullScreenContent($adUnitId): ${ad.print()}');
-                ad.dispose();
-                _instance.remove(adUnitId);
-              },
-              onAdFailedToShowFullScreenContent:
-                  (InterstitialAd ad, AdError error) {
-                debug(
-                    'interstitial_failedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
-                ad.dispose();
-                _instance.remove(adUnitId);
-              },
-              onAdImpression: (InterstitialAd ad) =>
-                  debug('interstitial_impression($adUnitId): ${ad.print()}'),
-            );
-            _instance[adUnitId] = ad;
-            debug('interstitial_loaded($adUnitId): ${ad.print()}');
-            result.complete(ad);
-          },
-          onAdFailedToLoad: (LoadAdError error) {
-            debug(
-                'interstitial_failedToLoaded($adUnitId): ${error.toString()}');
-            result.completeError(error);
-          },
-        ));
+      adUnitId: adUnitId,
+      request: adRequest,
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (InterstitialAd ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdShowedFullScreenContent: (InterstitialAd ad) => printDebug(
+                'interstitial_showedFullScreenContent($adUnitId): ${ad.print()}'),
+            onAdDismissedFullScreenContent: (InterstitialAd ad) {
+              printDebug(
+                  'interstitial_dismissedFullScreenContent($adUnitId): ${ad.print()}');
+              ad.dispose();
+              _instance.remove(adUnitId);
+              if (_reloadAfterShow[adUnitId] ?? true) {
+                load();
+              }
+            },
+            onAdFailedToShowFullScreenContent:
+                (InterstitialAd ad, AdError error) {
+              printDebug(
+                  'interstitial_failedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
+              ad.dispose();
+              _instance.remove(adUnitId);
+              if (_reloadAfterShow[adUnitId] ?? true) {
+                load();
+              }
+            },
+            onAdImpression: (InterstitialAd ad) =>
+                printDebug('interstitial_impression($adUnitId): ${ad.print()}'),
+          );
+          _instance[adUnitId] = ad;
+          printDebug('interstitial_loaded($adUnitId): ${ad.print()}');
+          result.complete(true);
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          printDebug(
+              'interstitial_failedToLoaded($adUnitId): ${error.toString()}');
+          _instance.remove(adUnitId);
+          result.complete(false);
+        },
+      ),
+    );
     return result.future;
   }
 
@@ -68,6 +76,7 @@ class GoodInterstitial {
   Future<void> show({
     bool reloadAfterShow = true,
   }) async {
+    _reloadAfterShow[adUnitId] = reloadAfterShow;
     // Ad instance of adUnitId has loaded fail or already showed.
     if (_instance[adUnitId] == null) {
       if (reloadAfterShow) {
@@ -75,13 +84,11 @@ class GoodInterstitial {
       }
       return;
     }
-    if (DateTime.now().millisecondsSinceEpoch - lastImpressions.get(adUnitId) >
+    if (DateTime.now().millisecondsSinceEpoch -
+            await getLastImpressions(adUnitId) >
         _interval.get(adUnitId)) {
       await _instance[adUnitId]!.show();
-      lastImpressions.set(adUnitId, DateTime.now().millisecondsSinceEpoch);
-      if (reloadAfterShow) {
-        load();
-      }
+      await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
     }
   }
 }
