@@ -11,6 +11,7 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
     this.interval = 60000,
     this.adsPlaceholderColor,
     this.onLoadAdError,
+    this.onAdImpression,
   }) : super(key: key);
 
   final String? adUnitId;
@@ -18,6 +19,7 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
   final int interval;
   final Color? adsPlaceholderColor;
   final void Function(Object, StackTrace)? onLoadAdError;
+  final void Function(int time, String adUnitId)? onAdImpression;
 
   @override
   State<GoodBannerAdaptiveAnchored> createState() =>
@@ -30,12 +32,14 @@ class _GoodBannerAdaptiveAnchoredState
   bool _isLoaded = false;
   AnchoredAdaptiveBannerAdSize? size;
   Size? defaultBannerSize;
+  String? adUnitId;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     computeDefaultBannerSize();
     if (widget.adUnitId != null) {
+      adUnitId = widget.adUnitId!;
       _initAd();
     } else {
       _hideAd();
@@ -47,6 +51,7 @@ class _GoodBannerAdaptiveAnchoredState
     super.didUpdateWidget(oldWidget);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.adUnitId != null) {
+        adUnitId = widget.adUnitId!;
         _initAd();
       } else {
         _hideAd();
@@ -70,7 +75,7 @@ class _GoodBannerAdaptiveAnchoredState
   }
 
   Future<void> _initAd() async {
-    final lastImpressions = await getLastImpressions(widget.adUnitId!);
+    final lastImpressions = await getLastImpressions(adUnitId!);
     if (DateTime.now().millisecondsSinceEpoch - lastImpressions >
         widget.interval) {
       _loadAd();
@@ -102,7 +107,7 @@ class _GoodBannerAdaptiveAnchoredState
       }
 
       _anchoredAdaptiveAd = BannerAd(
-        adUnitId: widget.adUnitId!,
+        adUnitId: adUnitId!,
         size: size!,
         request: widget.adRequest,
         listener: BannerAdListener(
@@ -121,11 +126,13 @@ class _GoodBannerAdaptiveAnchoredState
           },
           onAdImpression: (Ad ad) {
             printDebug('impression: ${ad.responseInfo}');
+            widget.onAdImpression?.call(
+                DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId!);
           },
         ),
       );
       await setLastImpressions(
-          widget.adUnitId!, DateTime.now().millisecondsSinceEpoch);
+          adUnitId!, DateTime.now().millisecondsSinceEpoch);
       return _anchoredAdaptiveAd!.load();
     } catch (e, s) {
       printError('loadAd', e, s);

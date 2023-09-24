@@ -15,11 +15,13 @@ class GoodInterstitial {
     required this.adUnitId,
     this.adRequest = const AdRequest(),
     this.interval = 60000,
+    this.onAdImpression,
   });
 
   final String adUnitId;
   final AdRequest adRequest;
   final int interval;
+  final void Function(int time, String adUnitId)? onAdImpression;
 
   Future<bool> load() async {
     _interval[adUnitId] = interval;
@@ -51,8 +53,11 @@ class GoodInterstitial {
                 load();
               }
             },
-            onAdImpression: (InterstitialAd ad) =>
-                printDebug('interstitial_impression($adUnitId): ${ad.print()}'),
+            onAdImpression: (InterstitialAd ad) {
+              printDebug('interstitial_impression($adUnitId): ${ad.print()}');
+              onAdImpression?.call(
+                  DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId);
+            },
           );
           _instance[adUnitId] = ad;
           printDebug('interstitial_loaded($adUnitId): ${ad.print()}');
