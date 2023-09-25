@@ -23,7 +23,8 @@ class GoodInterstitial {
   final AdRequest adRequest;
   final int interval;
   final void Function(int time, String adUnitId)? onAdImpression;
-  final void Function(String, LoadAdError)? onAdFailedToLoad;
+  final void Function(int time, String adUnitId, LoadAdError error)?
+      onAdFailedToLoad;
 
   Future<bool> load() async {
     _interval[adUnitId] = interval;
@@ -68,7 +69,8 @@ class GoodInterstitial {
         onAdFailedToLoad: (LoadAdError error) {
           printDebug(
               'interstitial_failedToLoaded($adUnitId): ${error.toString()}');
-          onAdFailedToLoad?.call(adUnitId, error);
+          onAdFailedToLoad?.call(
+              DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
           _instance.remove(adUnitId);
           result.complete(false);
         },

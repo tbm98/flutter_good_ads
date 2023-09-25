@@ -21,7 +21,8 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
   final Color? adsPlaceholderColor;
   final void Function(Object, StackTrace)? onLoadAdError;
   final void Function(int time, String adUnitId)? onAdImpression;
-  final void Function(String, LoadAdError)? onAdFailedToLoad;
+  final void Function(int time, String adUnitId, LoadAdError error)?
+      onAdFailedToLoad;
 
   @override
   State<GoodBannerAdaptiveAnchored> createState() =>
@@ -124,7 +125,10 @@ class _GoodBannerAdaptiveAnchoredState
           },
           onAdFailedToLoad: (Ad ad, LoadAdError error) {
             printDebug('Anchored adaptive banner failedToLoad: $error');
-            widget.onAdFailedToLoad?.call(ad.adUnitId, error);
+            widget.onAdFailedToLoad?.call(
+                DateTime.now().toUtc().millisecondsSinceEpoch,
+                ad.adUnitId,
+                error);
             ad.dispose();
           },
           onAdImpression: (Ad ad) {
