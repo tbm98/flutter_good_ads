@@ -16,12 +16,14 @@ class GoodInterstitial {
     this.adRequest = const AdRequest(),
     this.interval = 60000,
     this.onAdImpression,
+    this.onAdFailedToLoad,
   });
 
   final String adUnitId;
   final AdRequest adRequest;
   final int interval;
   final void Function(int time, String adUnitId)? onAdImpression;
+  final void Function(String, LoadAdError)? onAdFailedToLoad;
 
   Future<bool> load() async {
     _interval[adUnitId] = interval;
@@ -66,6 +68,7 @@ class GoodInterstitial {
         onAdFailedToLoad: (LoadAdError error) {
           printDebug(
               'interstitial_failedToLoaded($adUnitId): ${error.toString()}');
+          onAdFailedToLoad?.call(adUnitId, error);
           _instance.remove(adUnitId);
           result.complete(false);
         },
