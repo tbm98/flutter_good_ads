@@ -36,10 +36,10 @@ class GoodInterstitial {
         onAdLoaded: (InterstitialAd ad) {
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (InterstitialAd ad) => printDebug(
-                'interstitial_showedFullScreenContent($adUnitId): ${ad.print()}'),
+                'onAdShowedFullScreenContent($adUnitId): ${ad.print()}'),
             onAdDismissedFullScreenContent: (InterstitialAd ad) {
               printDebug(
-                  'interstitial_dismissedFullScreenContent($adUnitId): ${ad.print()}');
+                  'onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
               ad.dispose();
               _instance.remove(adUnitId);
               if (_reloadAfterShow[adUnitId] ?? true) {
@@ -49,7 +49,7 @@ class GoodInterstitial {
             onAdFailedToShowFullScreenContent:
                 (InterstitialAd ad, AdError error) {
               printDebug(
-                  'interstitial_failedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
+                  'onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
               ad.dispose();
               _instance.remove(adUnitId);
               if (_reloadAfterShow[adUnitId] ?? true) {
@@ -57,18 +57,18 @@ class GoodInterstitial {
               }
             },
             onAdImpression: (InterstitialAd ad) {
-              printDebug('interstitial_impression($adUnitId): ${ad.print()}');
+              printDebug('onAdImpression($adUnitId): ${ad.print()}');
               onAdImpression?.call(
                   DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId);
             },
           );
           _instance[adUnitId] = ad;
-          printDebug('interstitial_loaded($adUnitId): ${ad.print()}');
+          printDebug('loaded($adUnitId): ${ad.print()}');
           result.complete(true);
         },
         onAdFailedToLoad: (LoadAdError error) {
           printDebug(
-              'interstitial_failedToLoaded($adUnitId): ${error.toString()}');
+              'onAdFailedToLoad($adUnitId): ${error.toString()}');
           onAdFailedToLoad?.call(
               DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
           _instance.remove(adUnitId);
