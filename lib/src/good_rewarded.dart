@@ -84,7 +84,7 @@ class GoodRewarded {
   /// you after show. default: true
   Future<void> show({
     bool reloadAfterShow = true,
-    void Function(AdWithoutView, RewardItem)? onUserEarnedReward,
+    void Function(AdWithoutView ad, RewardItem reward)? onUserEarnedReward,
   }) async {
     _reloadAfterShow[adUnitId] = reloadAfterShow;
     // Ad instance of adUnitId has loaded fail or already showed.
