@@ -32,7 +32,7 @@ class GoodRewarded {
         DateTime.now().millisecondsSinceEpoch - await getLastImpressions(adUnitId) > interval;
   }
 
-  bool get needLoad => rewardedAd != null && _isLoading == false && _isloaded == false;
+  bool get needLoad => rewardedAd == null && _isLoading == false && _isloaded == false;
 
   /// load ads with retry
   Future<void> load() async {
@@ -46,7 +46,8 @@ class GoodRewarded {
   }
 
   /// return [RewardedAd], or throw [LoadAdError] if error
-  Future<void> _loadRaw() async {
+  Future<RewardedAd?> _loadRaw() async {
+    final Completer<RewardedAd?> result = Completer();
     await RewardedAd.load(
       adUnitId: adUnitId,
       request: adRequest,
@@ -55,6 +56,7 @@ class GoodRewarded {
           printInfo('REWARDED:onAdLoaded($adUnitId): ${ad.print()}');
           rewardedAd = ad;
           _isloaded = true;
+          result.complete(ad);
         },
         onAdFailedToLoad: (LoadAdError error) {
           printInfo('REWARDED:onAdFailedToLoad($adUnitId): ${error.toString()}');
@@ -62,9 +64,11 @@ class GoodRewarded {
           rewardedAd?.dispose();
           rewardedAd = null;
           _isloaded = false;
+          result.complete(null);
         },
       ),
     );
+    return await result.future;
   }
 
   /// show the InterstitialAd by [adUnitId], must call [load] first.
@@ -81,6 +85,7 @@ class GoodRewarded {
           _isloaded = false;
           onUserEarnedReward(null, null);
           ad.dispose();
+          rewardedAd = null;
           load();
         },
         onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
@@ -89,6 +94,7 @@ class GoodRewarded {
           _isloaded = false;
           onUserEarnedReward(null, null);
           ad.dispose();
+          rewardedAd = null;
           load();
         },
         onAdImpression: (RewardedAd ad) {

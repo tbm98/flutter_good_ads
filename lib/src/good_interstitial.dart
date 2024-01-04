@@ -33,7 +33,7 @@ class GoodInterstitial {
         DateTime.now().millisecondsSinceEpoch - await getLastImpressions(adUnitId) > interval;
   }
 
-  bool get needLoad => interstitialAd != null && _isLoading == false && _isloaded == false;
+  bool get needLoad => interstitialAd == null && _isLoading == false && _isloaded == false;
 
   /// load ads with retry
   Future<void> load() async {
@@ -41,13 +41,13 @@ class GoodInterstitial {
       return;
     }
     interstitialAd?.dispose();
-    await retry(_loadRaw);
     _isLoading = true;
     await retry(_loadRaw);
     _isLoading = false;
   }
 
-  Future<void> _loadRaw() async {
+  Future<InterstitialAd?> _loadRaw() async {
+    final Completer<InterstitialAd?> result = Completer();
     await InterstitialAd.load(
       adUnitId: adUnitId,
       request: adRequest,
@@ -56,6 +56,7 @@ class GoodInterstitial {
           printInfo('Interstitial:onAdLoaded($adUnitId): ${ad.print()}');
           interstitialAd = ad;
           _isloaded = true;
+          result.complete(ad);
         },
         onAdFailedToLoad: (LoadAdError error) {
           printInfo('Interstitial:onAdFailedToLoad($adUnitId): ${error.toString()}');
@@ -63,9 +64,11 @@ class GoodInterstitial {
           interstitialAd?.dispose();
           interstitialAd = null;
           _isloaded = false;
+          result.complete(null);
         },
       ),
     );
+    return await result.future;
   }
 
   /// show the InterstitialAd by [adUnitId], must call [load] first.
@@ -82,6 +85,7 @@ class GoodInterstitial {
           _isloaded = false;
           onAdClosed();
           ad.dispose();
+          interstitialAd = null;
           load();
         },
         onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
@@ -90,6 +94,7 @@ class GoodInterstitial {
           _isloaded = false;
           onAdClosed();
           ad.dispose();
+          interstitialAd = null;
           load();
         },
         onAdImpression: (InterstitialAd ad) {
