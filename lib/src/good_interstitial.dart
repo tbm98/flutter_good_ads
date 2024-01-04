@@ -22,6 +22,7 @@ class GoodInterstitial {
   final AdRequest adRequest;
   final int interval;
   bool _isloaded = false;
+  bool _isLoading = false;
   final OnPaidEventCallback onPaidEvent;
   final void Function(int time, String adUnitId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
@@ -32,10 +33,18 @@ class GoodInterstitial {
         DateTime.now().millisecondsSinceEpoch - await getLastImpressions(adUnitId) > interval;
   }
 
+  bool get needLoad => interstitialAd != null && _isLoading == false && _isloaded == false;
+
   /// load ads with retry
   Future<void> load() async {
+    if (!needLoad) {
+      return;
+    }
     interstitialAd?.dispose();
     await retry(_loadRaw);
+    _isLoading = true;
+    await retry(_loadRaw);
+    _isLoading = false;
   }
 
   Future<void> _loadRaw() async {
@@ -44,12 +53,12 @@ class GoodInterstitial {
       request: adRequest,
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
-          printDebug('Interstitial:onAdLoaded($adUnitId): ${ad.print()}');
+          printInfo('Interstitial:onAdLoaded($adUnitId): ${ad.print()}');
           interstitialAd = ad;
           _isloaded = true;
         },
         onAdFailedToLoad: (LoadAdError error) {
-          printDebug('Interstitial:onAdFailedToLoad($adUnitId): ${error.toString()}');
+          printInfo('Interstitial:onAdFailedToLoad($adUnitId): ${error.toString()}');
           onAdFailedToLoad.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
           interstitialAd?.dispose();
           interstitialAd = null;

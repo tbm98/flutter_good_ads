@@ -21,6 +21,7 @@ class GoodRewarded {
   final AdRequest adRequest;
   final int interval;
   bool _isloaded = false;
+  bool _isLoading = false;
   final OnPaidEventCallback onPaidEvent;
   final void Function(int time, String adUnitId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
@@ -31,11 +32,17 @@ class GoodRewarded {
         DateTime.now().millisecondsSinceEpoch - await getLastImpressions(adUnitId) > interval;
   }
 
+  bool get needLoad => rewardedAd != null && _isLoading == false && _isloaded == false;
+
   /// load ads with retry
-  /// return [RewardedAd], or throw [LoadAdError] if error
   Future<void> load() async {
+    if (!needLoad) {
+      return;
+    }
     rewardedAd?.dispose();
+    _isLoading = true;
     await retry(_loadRaw);
+    _isLoading = false;
   }
 
   /// return [RewardedAd], or throw [LoadAdError] if error
@@ -45,12 +52,12 @@ class GoodRewarded {
       request: adRequest,
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
-          printDebug('REWARDED:onAdLoaded($adUnitId): ${ad.print()}');
+          printInfo('REWARDED:onAdLoaded($adUnitId): ${ad.print()}');
           rewardedAd = ad;
           _isloaded = true;
         },
         onAdFailedToLoad: (LoadAdError error) {
-          printDebug('REWARDED:onAdFailedToLoad($adUnitId): ${error.toString()}');
+          printInfo('REWARDED:onAdFailedToLoad($adUnitId): ${error.toString()}');
           onAdFailedToLoad.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
           rewardedAd?.dispose();
           rewardedAd = null;
