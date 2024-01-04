@@ -23,7 +23,7 @@ class GoodRewarded {
   bool _isloaded = false;
   bool _isLoading = false;
   final OnPaidEventCallback onPaidEvent;
-  final void Function(int time, String adUnitId) onAdImpression;
+  final void Function(int time, String adUnitId, String responseId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
 
   Future<bool> canShow() async {
@@ -99,7 +99,8 @@ class GoodRewarded {
         },
         onAdImpression: (RewardedAd ad) {
           printInfo('REWARDED:onAdImpression($adUnitId): ${ad.print()}');
-          onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId);
+          onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+              ad.responseInfo?.responseId ?? '');
         },
       );
       await rewardedAd!.show(onUserEarnedReward: onUserEarnedReward);
