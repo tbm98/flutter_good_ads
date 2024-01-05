@@ -4,6 +4,7 @@ import 'package:common/common.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pool/pool.dart';
 
 class GoodRewarded {
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
@@ -34,15 +35,19 @@ class GoodRewarded {
 
   bool get needLoad => rewardedAd == null && _isLoading == false && _isloaded == false;
 
+  static final pool = Pool(1);
+
   /// load ads with retry
   Future<void> load() async {
-    if (!needLoad) {
-      return;
-    }
-    rewardedAd?.dispose();
-    _isLoading = true;
-    await retry(_loadRaw);
-    _isLoading = false;
+    await pool.withResource(() async {
+      if (!needLoad) {
+        return;
+      }
+      rewardedAd?.dispose();
+      _isLoading = true;
+      await retry(_loadRaw);
+      _isLoading = false;
+    });
   }
 
   /// return [RewardedAd], or throw [LoadAdError] if error

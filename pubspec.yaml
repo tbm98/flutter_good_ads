@@ -17,6 +17,7 @@ dependencies:
   common:
     path: ../opm_packages/common
   shared_preferences: ^2.2.2
+  pool: ^1.5.1
 
 
 dev_dependencies:
