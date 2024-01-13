@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:common/common.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
+import 'package:flutter_good_ads/src/good_ads.dart';
 import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pool/pool.dart';
 
-class GoodRewarded {
+class GoodRewarded extends GoodAds {
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
   GoodRewarded({
     required this.adUnitId,
@@ -38,6 +40,7 @@ class GoodRewarded {
   static final pool = Pool(1);
 
   /// load ads with retry
+  @override
   Future<void> load() async {
     await pool.withResource(() async {
       if (!needLoad) {
@@ -77,8 +80,10 @@ class GoodRewarded {
   }
 
   /// show the InterstitialAd by [adUnitId], must call [load] first.
+  @override
   Future<void> show({
-    required void Function(AdWithoutView? ad, RewardItem? reward) onUserEarnedReward,
+    VoidCallback? onAdClosed,
+    void Function(AdWithoutView? ad, RewardItem? reward)? onUserEarnedReward,
   }) async {
     if (await canShow()) {
       rewardedAd!.onPaidEvent = onPaidEvent;
@@ -88,7 +93,7 @@ class GoodRewarded {
         onAdDismissedFullScreenContent: (RewardedAd ad) {
           printInfo('REWARDED:onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
           _isloaded = false;
-          onUserEarnedReward(null, null);
+          onUserEarnedReward?.call(null, null);
           ad.dispose();
           rewardedAd = null;
           load();
@@ -97,7 +102,7 @@ class GoodRewarded {
           printInfo(
               'REWARDED:onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
           _isloaded = false;
-          onUserEarnedReward(null, null);
+          onUserEarnedReward?.call(null, null);
           ad.dispose();
           rewardedAd = null;
           load();
@@ -108,10 +113,10 @@ class GoodRewarded {
               ad.responseInfo?.responseId ?? '');
         },
       );
-      await rewardedAd!.show(onUserEarnedReward: onUserEarnedReward);
+      await rewardedAd!.show(onUserEarnedReward: onUserEarnedReward ?? (_, __) {});
       await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
     } else {
-      onUserEarnedReward(null, null);
+      onUserEarnedReward?.call(null, null);
       load();
     }
   }

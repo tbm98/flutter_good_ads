@@ -7,7 +7,9 @@ import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pool/pool.dart';
 
-class GoodInterstitial {
+import 'good_ads.dart';
+
+class GoodInterstitial extends GoodAds {
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
   GoodInterstitial({
     required this.adUnitId,
@@ -39,6 +41,7 @@ class GoodInterstitial {
   static final pool = Pool(1);
 
   /// load ads with retry
+  @override
   Future<void> load() async {
     await pool.withResource(() async {
       if (!needLoad) {
@@ -77,8 +80,10 @@ class GoodInterstitial {
   }
 
   /// show the InterstitialAd by [adUnitId], must call [load] first.
+  @override
   Future<void> show({
-    required VoidCallback onAdClosed,
+    VoidCallback? onAdClosed,
+    void Function(AdWithoutView? ad, RewardItem? reward)? onUserEarnedReward,
   }) async {
     if (await canShow()) {
       interstitialAd!.onPaidEvent = onPaidEvent;
@@ -88,7 +93,7 @@ class GoodInterstitial {
         onAdDismissedFullScreenContent: (InterstitialAd ad) {
           printInfo('Interstitial:onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
           _isloaded = false;
-          onAdClosed();
+          onAdClosed?.call();
           ad.dispose();
           interstitialAd = null;
           load();
@@ -97,7 +102,7 @@ class GoodInterstitial {
           printInfo(
               'Interstitial:onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
           _isloaded = false;
-          onAdClosed();
+          onAdClosed?.call();
           ad.dispose();
           interstitialAd = null;
           load();
@@ -111,7 +116,7 @@ class GoodInterstitial {
       await interstitialAd!.show();
       await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
     } else {
-      onAdClosed();
+      onAdClosed?.call();
       load();
     }
   }
