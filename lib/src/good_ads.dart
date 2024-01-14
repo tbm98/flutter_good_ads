@@ -9,4 +9,6 @@ abstract class GoodAds {
     VoidCallback? onAdClosed,
     void Function(AdWithoutView? ad, RewardItem? reward)? onUserEarnedReward,
   });
+
+  Future<bool> canShow();
 }

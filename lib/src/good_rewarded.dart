@@ -29,6 +29,7 @@ class GoodRewarded extends GoodAds {
   final void Function(int time, String adUnitId, String responseId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
 
+  @override
   Future<bool> canShow() async {
     return rewardedAd != null &&
         _isloaded &&
