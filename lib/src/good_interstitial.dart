@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:common/common.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -83,8 +82,7 @@ class GoodInterstitial extends GoodAds {
   /// show the InterstitialAd by [adUnitId], must call [load] first.
   @override
   Future<void> show({
-    VoidCallback? onAdClosed,
-    void Function(AdWithoutView? ad, RewardItem? reward)? onUserEarnedReward,
+    required OnFinishedAds onFinishedAds,
   }) async {
     if (await canShow()) {
       interstitialAd!.onPaidEvent = onPaidEvent;
@@ -94,7 +92,7 @@ class GoodInterstitial extends GoodAds {
         onAdDismissedFullScreenContent: (InterstitialAd ad) {
           printInfo('Interstitial:onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
           _isloaded = false;
-          onAdClosed?.call();
+          onFinishedAds(true);
           ad.dispose();
           interstitialAd = null;
           load();
@@ -103,7 +101,7 @@ class GoodInterstitial extends GoodAds {
           printInfo(
               'Interstitial:onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
           _isloaded = false;
-          onAdClosed?.call();
+          onFinishedAds(false);
           ad.dispose();
           interstitialAd = null;
           load();
@@ -117,7 +115,7 @@ class GoodInterstitial extends GoodAds {
       await interstitialAd!.show();
       await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
     } else {
-      onAdClosed?.call();
+      onFinishedAds(false);
       load();
     }
   }

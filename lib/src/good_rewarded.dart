@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:common/common.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_good_ads/flutter_good_ads.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
-import 'package:flutter_good_ads/src/good_ads.dart';
 import 'package:flutter_good_ads/src/local_storage.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pool/pool.dart';
 
 class GoodRewarded extends GoodAds {
+  static final Map<int, (AdWithoutView, RewardItem)> _rewarded = {};
+
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
   GoodRewarded({
     required this.adUnitId,
@@ -83,9 +83,10 @@ class GoodRewarded extends GoodAds {
   /// show the InterstitialAd by [adUnitId], must call [load] first.
   @override
   Future<void> show({
-    VoidCallback? onAdClosed,
-    void Function(AdWithoutView? ad, RewardItem? reward)? onUserEarnedReward,
+    required OnFinishedAds onFinishedAds,
   }) async {
+    final showAt = DateTime.now().millisecondsSinceEpoch;
+
     if (await canShow()) {
       rewardedAd!.onPaidEvent = onPaidEvent;
       rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
@@ -94,7 +95,8 @@ class GoodRewarded extends GoodAds {
         onAdDismissedFullScreenContent: (RewardedAd ad) {
           printInfo('REWARDED:onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
           _isloaded = false;
-          onUserEarnedReward?.call(null, null);
+          onFinishedAds(_rewarded[showAt] != null);
+          _rewarded.clear();
           ad.dispose();
           rewardedAd = null;
           load();
@@ -103,7 +105,8 @@ class GoodRewarded extends GoodAds {
           printInfo(
               'REWARDED:onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
           _isloaded = false;
-          onUserEarnedReward?.call(null, null);
+          onFinishedAds(false);
+          _rewarded.clear();
           ad.dispose();
           rewardedAd = null;
           load();
@@ -114,10 +117,12 @@ class GoodRewarded extends GoodAds {
               ad.responseInfo?.responseId ?? '');
         },
       );
-      await rewardedAd!.show(onUserEarnedReward: onUserEarnedReward ?? (_, __) {});
+      await rewardedAd!.show(onUserEarnedReward: (adWithoutView, rewardItem) {
+        _rewarded[showAt] = (adWithoutView, rewardItem);
+      });
       await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
     } else {
-      onUserEarnedReward?.call(null, null);
+      onFinishedAds(false);
       load();
     }
   }

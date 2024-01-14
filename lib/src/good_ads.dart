@@ -1,14 +1,12 @@
-import 'package:flutter/foundation.dart';
-
-import '../flutter_good_ads.dart';
-
 abstract class GoodAds {
   Future<void> load();
 
   Future<void> show({
-    VoidCallback? onAdClosed,
-    void Function(AdWithoutView? ad, RewardItem? reward)? onUserEarnedReward,
+    required OnFinishedAds onFinishedAds,
   });
 
   Future<bool> canShow();
 }
+
+/// Callback when an ads close, bool params is decide ads is finished show or (error/cancel)
+typedef OnFinishedAds = void Function(bool showed);
