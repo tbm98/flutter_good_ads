@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
+
 abstract class GoodAds {
   Future<void> load();
 
   Future<void> show({
     required OnFinishedAds onFinishedAds,
+    VoidCallback? onAdShowed,
   });
 
   Future<bool> canShow();

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:common/common.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -83,12 +84,15 @@ class GoodInterstitial extends GoodAds {
   @override
   Future<void> show({
     required OnFinishedAds onFinishedAds,
+    VoidCallback? onAdShowed,
   }) async {
     if (await canShow()) {
       interstitialAd!.onPaidEvent = onPaidEvent;
       interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdShowedFullScreenContent: (InterstitialAd ad) =>
-            printInfo('Interstitial:onAdShowedFullScreenContent($adUnitId): ${ad.print()}'),
+        onAdShowedFullScreenContent: (InterstitialAd ad) {
+          printInfo('Interstitial:onAdShowedFullScreenContent($adUnitId): ${ad.print()}');
+          onAdShowed?.call();
+        },
         onAdDismissedFullScreenContent: (InterstitialAd ad) {
           printInfo('Interstitial:onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
           _isloaded = false;

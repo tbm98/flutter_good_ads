@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:common/common.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_good_ads/flutter_good_ads.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:flutter_good_ads/src/local_storage.dart';
@@ -84,14 +85,17 @@ class GoodRewarded extends GoodAds {
   @override
   Future<void> show({
     required OnFinishedAds onFinishedAds,
+    VoidCallback? onAdShowed,
   }) async {
     final showAt = DateTime.now().millisecondsSinceEpoch;
 
     if (await canShow()) {
       rewardedAd!.onPaidEvent = onPaidEvent;
       rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdShowedFullScreenContent: (RewardedAd ad) =>
-            printInfo('REWARDED:onAdShowedFullScreenContent($adUnitId): ${ad.print()}'),
+        onAdShowedFullScreenContent: (RewardedAd ad) {
+          printInfo('REWARDED:onAdShowedFullScreenContent($adUnitId): ${ad.print()}');
+          onAdShowed?.call();
+        },
         onAdDismissedFullScreenContent: (RewardedAd ad) {
           printInfo('REWARDED:onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
           _isloaded = false;
