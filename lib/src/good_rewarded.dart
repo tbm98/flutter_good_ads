@@ -1,93 +1,133 @@
 import 'dart:async';
 
-import 'package:andesgroup_common/common.dart';
+import 'package:common/common.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_good_ads/flutter_good_ads.dart';
 import 'package:flutter_good_ads/src/extensions.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_good_ads/src/local_storage.dart';
+import 'package:pool/pool.dart';
 
-class GoodRewarded {
-  static Map<String, int> lastImpressions = {};
-  static final Map<String, RewardedAd> _instance = {};
-  static final Map<String, int> _interval = {};
+class GoodRewarded extends GoodAds {
+  static final Map<int, (AdWithoutView, RewardItem)> _rewarded = {};
 
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
-  const GoodRewarded({
+  GoodRewarded({
     required this.adUnitId,
     this.adRequest = const AdRequest(),
     this.interval = 60000,
+    required this.onPaidEvent,
+    required this.onAdImpression,
+    required this.onAdFailedToLoad,
   });
 
+  RewardedAd? rewardedAd;
   final String adUnitId;
   final AdRequest adRequest;
   final int interval;
+  bool _isloaded = false;
+  bool _isLoading = false;
+  final OnPaidEventCallback onPaidEvent;
+  final void Function(int time, String adUnitId, String responseId) onAdImpression;
+  final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
+
+  @override
+  Future<bool> canShow() async {
+    return rewardedAd != null &&
+        _isloaded &&
+        DateTime.now().millisecondsSinceEpoch - await getLastImpressions(adUnitId) > interval;
+  }
+
+  bool get needLoad => rewardedAd == null && _isLoading == false && _isloaded == false;
+
+  static final pool = Pool(1);
+
+  /// load ads with retry
+  @override
+  Future<void> load() async {
+    await pool.withResource(() async {
+      if (!needLoad) {
+        return;
+      }
+      rewardedAd?.dispose();
+      _isLoading = true;
+      await retry(_loadRaw);
+      _isLoading = false;
+    });
+  }
 
   /// return [RewardedAd], or throw [LoadAdError] if error
-  Future<RewardedAd> load() async {
-    _interval[adUnitId] = interval;
-    final Completer<RewardedAd> result = Completer();
+  Future<RewardedAd?> _loadRaw() async {
+    final Completer<RewardedAd?> result = Completer();
     await RewardedAd.load(
-        adUnitId: adUnitId,
-        request: adRequest,
-        rewardedAdLoadCallback: RewardedAdLoadCallback(
-          onAdLoaded: (RewardedAd ad) {
-            ad.fullScreenContentCallback = FullScreenContentCallback(
-              onAdShowedFullScreenContent: (RewardedAd ad) => debug('interstitial_showedFullScreenContent($adUnitId): ${ad.print()}'),
-              onAdDismissedFullScreenContent: (RewardedAd ad) {
-                debug('interstitial_dismissedFullScreenContent($adUnitId): ${ad.print()}');
-                ad.dispose();
-                _instance.remove(adUnitId);
-              },
-              onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
-                debug('interstitial_failedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
-                ad.dispose();
-                _instance.remove(adUnitId);
-              },
-              onAdImpression: (RewardedAd ad) => debug('interstitial_impression($adUnitId): ${ad.print()}'),
-            );
-            _instance[adUnitId] = ad;
-            debug('interstitial_loaded($adUnitId): ${ad.print()}');
-            result.complete(ad);
-          },
-          onAdFailedToLoad: (LoadAdError error) {
-            debug('interstitial_failedToLoaded($adUnitId): ${error.toString()}');
-            result.completeError(error);
-          },
-        ));
-    return result.future;
+      adUnitId: adUnitId,
+      request: adRequest,
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (RewardedAd ad) {
+          printInfo('REWARDED:onAdLoaded($adUnitId): ${ad.print()}');
+          rewardedAd = ad;
+          _isloaded = true;
+          result.complete(ad);
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          printInfo('REWARDED:onAdFailedToLoad($adUnitId): ${error.toString()}');
+          onAdFailedToLoad.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
+          rewardedAd?.dispose();
+          rewardedAd = null;
+          _isloaded = false;
+          result.complete(null);
+        },
+      ),
+    );
+    return await result.future;
   }
 
   /// show the InterstitialAd by [adUnitId], must call [load] first.
-  ///
-  /// if [reloadAfterShow] is true, it will automatically call reload for
-  /// you after show. default: true
+  @override
   Future<void> show({
-    bool reloadAfterShow = true,
-    void Function(AdWithoutView, RewardItem)? onUserEarnedReward,
-    Function? onError,
+    required OnFinishedAds onFinishedAds,
+    VoidCallback? onAdShowed,
   }) async {
-    // Ad instance of adUnitId has loaded fail or already showed.
-    if (_instance[adUnitId] == null) {
-      if (onError != null) {
-        onError();
-      }
-      if (reloadAfterShow) {
-        load();
-      }
+    final showAt = DateTime.now().millisecondsSinceEpoch;
 
-      return;
-    }
-    if (DateTime.now().millisecondsSinceEpoch - lastImpressions.get(adUnitId) > _interval.get(adUnitId)) {
-      await _instance[adUnitId]!.show(
-        onUserEarnedReward: onUserEarnedReward ?? (_, __) {},
+    if (await canShow()) {
+      rewardedAd!.onPaidEvent = onPaidEvent;
+      rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdShowedFullScreenContent: (RewardedAd ad) {
+          printInfo('REWARDED:onAdShowedFullScreenContent($adUnitId): ${ad.print()}');
+          onAdShowed?.call();
+        },
+        onAdDismissedFullScreenContent: (RewardedAd ad) {
+          printInfo('REWARDED:onAdDismissedFullScreenContent($adUnitId): ${ad.print()}');
+          _isloaded = false;
+          onFinishedAds(_rewarded[showAt] != null);
+          _rewarded.clear();
+          ad.dispose();
+          rewardedAd = null;
+          load();
+        },
+        onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+          printInfo(
+              'REWARDED:onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
+          _isloaded = false;
+          onFinishedAds(false);
+          _rewarded.clear();
+          ad.dispose();
+          rewardedAd = null;
+          load();
+        },
+        onAdImpression: (RewardedAd ad) {
+          printInfo('REWARDED:onAdImpression($adUnitId): ${ad.print()}');
+          onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+              ad.responseInfo?.responseId ?? '');
+        },
       );
-      lastImpressions.set(adUnitId, DateTime.now().millisecondsSinceEpoch);
-      if (reloadAfterShow) {
-        load();
-      }
-    }
-    else {
-      if (onError != null) {
-        onError();
-      }
+      await rewardedAd!.show(onUserEarnedReward: (adWithoutView, rewardItem) {
+        _rewarded[showAt] = (adWithoutView, rewardItem);
+      });
+      await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
+    } else {
+      onFinishedAds(false);
+      load();
     }
   }
 }
