@@ -132,9 +132,11 @@ packages:
   common:
     dependency: transitive
     description:
-      path: "../../opm_packages/common"
-      relative: true
-    source: path
+      path: common
+      ref: HEAD
+      resolved-ref: "208421b247b63f493d01b159eeb81bced38c6a78"
+      url: "https://git.alicemob.com/alicemob/mobile/opm_packages.git"
+    source: git
     version: "2.0.0"
   convert:
     dependency: transitive
@@ -665,9 +667,11 @@ packages:
   productivity_common:
     dependency: transitive
     description:
-      path: "../../opm_packages/productivity_common"
-      relative: true
-    source: path
+      path: productivity_common
+      ref: HEAD
+      resolved-ref: "208421b247b63f493d01b159eeb81bced38c6a78"
+      url: "https://git.alicemob.com/alicemob/mobile/opm_packages.git"
+    source: git
     version: "0.0.1"
   rxdart:
     dependency: transitive
