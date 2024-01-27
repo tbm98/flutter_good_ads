@@ -14,7 +14,9 @@ dependencies:
     sdk: flutter
   google_mobile_ads: ^4.0.0
   common:
-    path: ../opm_packages/common
+    git:
+      url: https://git.alicemob.com/alicemob/mobile/opm_packages.git
+      path: common
   shared_preferences: ^2.2.2
   pool: ^1.5.1
 
