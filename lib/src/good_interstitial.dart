@@ -43,7 +43,7 @@ class GoodInterstitial extends GoodAds {
 
   /// load ads with retry
   @override
-  Future<AdWithoutView?> load({required bool useRetry}) async {
+  Future<AdWithoutView?> load({bool useRetry = true}) async {
     return await pool.withResource(() async {
       if (!needLoad) {
         return interstitialAd;
@@ -100,7 +100,7 @@ class GoodInterstitial extends GoodAds {
           onFinishedAds(true);
           ad.dispose();
           interstitialAd = null;
-          load(useRetry: true);
+          load();
         },
         onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
           printInfo(
@@ -109,7 +109,7 @@ class GoodInterstitial extends GoodAds {
           onFinishedAds(false);
           ad.dispose();
           interstitialAd = null;
-          load(useRetry: true);
+          load();
         },
         onAdImpression: (InterstitialAd ad) {
           printInfo('Interstitial:onAdImpression($adUnitId): ${ad.print()}');
@@ -121,7 +121,7 @@ class GoodInterstitial extends GoodAds {
       await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
     } else {
       onFinishedAds(false);
-      load(useRetry: true);
+      load();
     }
   }
 }

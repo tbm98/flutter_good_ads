@@ -43,7 +43,7 @@ class GoodRewarded extends GoodAds {
 
   /// load ads with retry
   @override
-  Future<AdWithoutView?> load({required bool useRetry}) async {
+  Future<AdWithoutView?> load({bool useRetry = true}) async {
     return await pool.withResource(() async {
       if (!needLoad) {
         return rewardedAd;
@@ -104,7 +104,7 @@ class GoodRewarded extends GoodAds {
           _rewarded.clear();
           ad.dispose();
           rewardedAd = null;
-          load(useRetry: true);
+          load();
         },
         onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
           printInfo(
@@ -114,7 +114,7 @@ class GoodRewarded extends GoodAds {
           _rewarded.clear();
           ad.dispose();
           rewardedAd = null;
-          load(useRetry: true);
+          load();
         },
         onAdImpression: (RewardedAd ad) {
           printInfo('REWARDED:onAdImpression($adUnitId): ${ad.print()}');
@@ -128,7 +128,7 @@ class GoodRewarded extends GoodAds {
       await setLastImpressions(adUnitId, DateTime.now().millisecondsSinceEpoch);
     } else {
       onFinishedAds(false);
-      load(useRetry: true);
+      load();
     }
   }
 }

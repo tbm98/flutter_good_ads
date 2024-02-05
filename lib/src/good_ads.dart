@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 abstract class GoodAds {
-  Future<AdWithoutView?> load({required bool useRetry});
+  Future<AdWithoutView?> load({bool useRetry = true});
 
   Future<void> show({
     required OnFinishedAds onFinishedAds,
