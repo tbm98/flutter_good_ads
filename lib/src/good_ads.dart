@@ -7,6 +7,7 @@ abstract class GoodAds {
   Future<void> show({
     required OnFinishedAds onFinishedAds,
     VoidCallback? onAdShowed,
+    VoidCallback? onAdFailedToShow,
   });
 
   Future<bool> canShow();

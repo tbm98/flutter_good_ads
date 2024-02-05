@@ -86,6 +86,7 @@ class GoodInterstitial extends GoodAds {
   Future<void> show({
     required OnFinishedAds onFinishedAds,
     VoidCallback? onAdShowed,
+    VoidCallback? onAdFailedToShow,
   }) async {
     if (await canShow()) {
       interstitialAd!.onPaidEvent = onPaidEvent;
@@ -106,6 +107,7 @@ class GoodInterstitial extends GoodAds {
           printInfo(
               'Interstitial:onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
           _isloaded = false;
+          onAdFailedToShow?.call();
           onFinishedAds(false);
           ad.dispose();
           interstitialAd = null;

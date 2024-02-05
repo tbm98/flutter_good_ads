@@ -87,6 +87,7 @@ class GoodRewarded extends GoodAds {
   Future<void> show({
     required OnFinishedAds onFinishedAds,
     VoidCallback? onAdShowed,
+    VoidCallback? onAdFailedToShow,
   }) async {
     final showAt = DateTime.now().millisecondsSinceEpoch;
 
@@ -110,6 +111,7 @@ class GoodRewarded extends GoodAds {
           printInfo(
               'REWARDED:onAdFailedToShowFullScreenContent($adUnitId): ${ad.print()},Error: $error');
           _isloaded = false;
+          onAdFailedToShow?.call();
           onFinishedAds(false);
           _rewarded.clear();
           ad.dispose();
