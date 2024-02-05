@@ -9,7 +9,7 @@ import 'package:pool/pool.dart';
 
 import 'good_ads.dart';
 
-class GoodInterstitial extends GoodAds {
+class GoodInterstitial extends GoodAdsFullScreen {
   /// [interval] minimum interval between 2 impressions (millis), default: 60000
   GoodInterstitial({
     required this.adUnitId,

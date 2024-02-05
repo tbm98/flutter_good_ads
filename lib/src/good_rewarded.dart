@@ -7,7 +7,7 @@ import 'package:flutter_good_ads/src/extensions.dart';
 import 'package:flutter_good_ads/src/local_storage.dart';
 import 'package:pool/pool.dart';
 
-class GoodRewarded extends GoodAds {
+class GoodRewarded extends GoodAdsFullScreen {
   static final Map<int, (AdWithoutView, RewardItem)> _rewarded = {};
 
   /// [interval] minimum interval between 2 impressions (millis), default: 60000

@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-abstract class GoodAds {
+abstract class GoodAdsFullScreen {
+  static bool isShowing = false;
+
   Future<AdWithoutView?> load({bool useRetry = true});
 
   Future<void> show({
