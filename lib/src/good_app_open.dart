@@ -30,7 +30,7 @@ class GoodAppOpen {
   DateTime? _appOpenLoadTime;
 
   /// Load an AppOpenAd.
-  Future<AppOpenAd?> loadAd() {
+  Future<AppOpenAd?> load() {
     final result = Completer<AppOpenAd?>();
     AppOpenAd.load(
       adUnitId: adUnitId,
@@ -57,11 +57,11 @@ class GoodAppOpen {
     return _appOpenAd != null;
   }
 
-  void showAdIfAvailable({
+  Future<void> show({
     required OnFinishedAds onFinishedAds,
     VoidCallback? onAdShowed,
     VoidCallback? onAdFailedToShow,
-  }) {
+  }) async {
     if (isGoOut) {
       isGoOut = false;
       return;
@@ -70,7 +70,7 @@ class GoodAppOpen {
       return;
     }
     if (!isAdAvailable) {
-      loadAd();
+      load();
       return;
     }
     if (_isShowingAd) {
@@ -79,31 +79,35 @@ class GoodAppOpen {
     if (DateTime.now().subtract(maxCacheDuration).isAfter(_appOpenLoadTime!)) {
       _appOpenAd!.dispose();
       _appOpenAd = null;
-      loadAd();
+      load();
       return;
     }
     // Set the fullScreenContentCallback and show the ad.
     _appOpenAd!.onPaidEvent = onPaidEvent;
-    _appOpenAd!.fullScreenContentCallback =
-        FullScreenContentCallback(onAdShowedFullScreenContent: (ad) {
-      _isShowingAd = true;
-      onAdShowed?.call();
-    }, onAdFailedToShowFullScreenContent: (ad, error) {
-      _isShowingAd = false;
-      onAdFailedToShow?.call();
-      onFinishedAds(false);
-      ad.dispose();
-      _appOpenAd = null;
-    }, onAdDismissedFullScreenContent: (ad) {
-      _isShowingAd = false;
-      onFinishedAds(true);
-      ad.dispose();
-      _appOpenAd = null;
-      loadAd();
-    }, onAdImpression: (ad) {
-      onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
-          ad.responseInfo?.responseId ?? '');
-    });
-    _appOpenAd!.show();
+    _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        _isShowingAd = true;
+        onAdShowed?.call();
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        _isShowingAd = false;
+        onAdFailedToShow?.call();
+        onFinishedAds(false);
+        ad.dispose();
+        _appOpenAd = null;
+      },
+      onAdDismissedFullScreenContent: (ad) {
+        _isShowingAd = false;
+        onFinishedAds(true);
+        ad.dispose();
+        _appOpenAd = null;
+        load();
+      },
+      onAdImpression: (ad) {
+        onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+            ad.responseInfo?.responseId ?? '');
+      },
+    );
+    await _appOpenAd!.show();
   }
 }
