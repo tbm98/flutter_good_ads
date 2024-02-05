@@ -5,9 +5,20 @@ import 'package:flutter/foundation.dart';
 import '../flutter_good_ads.dart';
 
 class GoodAppOpen {
-  GoodAppOpen({required this.adUnitId});
+  GoodAppOpen({
+    required this.adUnitId,
+    this.adRequest = const AdRequest(),
+    required this.onPaidEvent,
+    required this.onAdImpression,
+    required this.onAdFailedToLoad,
+  });
 
   final String adUnitId;
+  final AdRequest adRequest;
+  final OnPaidEventCallback onPaidEvent;
+  final void Function(int time, String adUnitId, String responseId) onAdImpression;
+  final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
+
   AppOpenAd? _appOpenAd;
   bool _isShowingAd = false;
   static bool isGoOut = false;
@@ -24,7 +35,7 @@ class GoodAppOpen {
     AppOpenAd.load(
       adUnitId: adUnitId,
       orientation: AppOpenAd.orientationPortrait,
-      request: const AdRequest(),
+      request: adRequest,
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
           _appOpenLoadTime = DateTime.now();
@@ -33,6 +44,7 @@ class GoodAppOpen {
         },
         onAdFailedToLoad: (error) {
           // Handle the error.
+          onAdFailedToLoad.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
           result.complete(null);
         },
       ),
@@ -71,26 +83,27 @@ class GoodAppOpen {
       return;
     }
     // Set the fullScreenContentCallback and show the ad.
-    _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (ad) {
-        _isShowingAd = true;
-        onAdShowed?.call();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        _isShowingAd = false;
-        onAdFailedToShow?.call();
-        onFinishedAds(false);
-        ad.dispose();
-        _appOpenAd = null;
-      },
-      onAdDismissedFullScreenContent: (ad) {
-        _isShowingAd = false;
-        onFinishedAds(true);
-        ad.dispose();
-        _appOpenAd = null;
-        loadAd();
-      },
-    );
+    _appOpenAd!.onPaidEvent = onPaidEvent;
+    _appOpenAd!.fullScreenContentCallback =
+        FullScreenContentCallback(onAdShowedFullScreenContent: (ad) {
+      _isShowingAd = true;
+      onAdShowed?.call();
+    }, onAdFailedToShowFullScreenContent: (ad, error) {
+      _isShowingAd = false;
+      onAdFailedToShow?.call();
+      onFinishedAds(false);
+      ad.dispose();
+      _appOpenAd = null;
+    }, onAdDismissedFullScreenContent: (ad) {
+      _isShowingAd = false;
+      onFinishedAds(true);
+      ad.dispose();
+      _appOpenAd = null;
+      loadAd();
+    }, onAdImpression: (ad) {
+      onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+          ad.responseInfo?.responseId ?? '');
+    });
     _appOpenAd!.show();
   }
 }
