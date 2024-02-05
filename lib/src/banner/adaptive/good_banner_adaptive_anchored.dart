@@ -4,30 +4,29 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class GoodBannerAdaptiveAnchored extends StatefulWidget {
   const GoodBannerAdaptiveAnchored({
-    Key? key,
+    super.key,
     required this.adUnitId,
     this.adRequest = const AdRequest(),
     this.adsPlaceholderColor,
     this.onLoadAdError,
     this.onAdImpression,
     this.onAdFailedToLoad,
-  }) : super(key: key);
+    required this.placeHolder,
+  });
 
   final String? adUnitId;
   final AdRequest adRequest;
   final Color? adsPlaceholderColor;
   final void Function(Object, StackTrace)? onLoadAdError;
   final void Function(int time, String adUnitId)? onAdImpression;
-  final void Function(int time, String adUnitId, LoadAdError error)?
-      onAdFailedToLoad;
+  final void Function(int time, String adUnitId, LoadAdError error)? onAdFailedToLoad;
+  final Widget Function(double? width, double? height) placeHolder;
 
   @override
-  State<GoodBannerAdaptiveAnchored> createState() =>
-      _GoodBannerAdaptiveAnchoredState();
+  State<GoodBannerAdaptiveAnchored> createState() => _GoodBannerAdaptiveAnchoredState();
 }
 
-class _GoodBannerAdaptiveAnchoredState
-    extends State<GoodBannerAdaptiveAnchored> {
+class _GoodBannerAdaptiveAnchoredState extends State<GoodBannerAdaptiveAnchored> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
   AdSize? size;
@@ -64,9 +63,8 @@ class _GoodBannerAdaptiveAnchoredState
   void computeDefaultBannerSize() {
     final width = MediaQuery.of(context).size.width;
     final height = width * 0.1557;
-    setState(() {
-      defaultBannerSize = AdSize(width: width.toInt(), height: height.toInt());
-    });
+    defaultBannerSize = AdSize(width: width.toInt(), height: height.toInt());
+    setState(() {});
   }
 
   void _hideAd() {
@@ -110,16 +108,13 @@ class _GoodBannerAdaptiveAnchoredState
           },
           onAdFailedToLoad: (Ad ad, LoadAdError error) {
             printDebug('onAdFailedToLoad($adUnitId): $error');
-            widget.onAdFailedToLoad?.call(
-                DateTime.now().toUtc().millisecondsSinceEpoch,
-                ad.adUnitId,
-                error);
+            widget.onAdFailedToLoad
+                ?.call(DateTime.now().toUtc().millisecondsSinceEpoch, ad.adUnitId, error);
             ad.dispose();
           },
           onAdImpression: (Ad ad) {
             printDebug('onAdImpression($adUnitId): ${ad.responseInfo}');
-            widget.onAdImpression?.call(
-                DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId!);
+            widget.onAdImpression?.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId!);
           },
         ),
       );
@@ -134,9 +129,7 @@ class _GoodBannerAdaptiveAnchoredState
   Widget build(BuildContext context) {
     return OrientationBuilder(
       builder: (context, orientation) {
-        if (_currentOrientation == orientation &&
-            _bannerAd != null &&
-            _isLoaded) {
+        if (_currentOrientation == orientation && _bannerAd != null && _isLoaded) {
           return SizedBox(
             width: _bannerAd!.size.width.toDouble(),
             height: _bannerAd!.size.height.toDouble(),
@@ -148,15 +141,9 @@ class _GoodBannerAdaptiveAnchoredState
           _currentOrientation = orientation;
           _loadAd();
         }
-        return SizedBox(
-          width: defaultBannerSize?.width.toDouble(),
-          height: defaultBannerSize?.height.toDouble(),
-          child: Center(
-            child: Text(
-              'AD will be here.',
-              style: TextStyle(color: widget.adsPlaceholderColor),
-            ),
-          ),
+        return widget.placeHolder(
+          defaultBannerSize?.width.toDouble(),
+          defaultBannerSize?.height.toDouble(),
         );
       },
     );
