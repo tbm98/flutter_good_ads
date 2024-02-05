@@ -21,7 +21,6 @@ class GoodAppOpen {
 
   AppOpenAd? _appOpenAd;
   bool _isShowingAd = false;
-  static bool isGoOut = false;
 
   /// Maximum duration allowed between loading and showing the ad.
   final Duration maxCacheDuration = const Duration(hours: 4);
@@ -62,8 +61,8 @@ class GoodAppOpen {
     VoidCallback? onAdShowed,
     VoidCallback? onAdFailedToShow,
   }) async {
-    if (isGoOut) {
-      isGoOut = false;
+    if (GoodAdsFullScreen.isShowing) {
+      GoodAdsFullScreen.isShowing = false;
       return;
     }
     if (GoodAdsFullScreen.isShowing) {
