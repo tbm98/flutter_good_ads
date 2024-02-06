@@ -9,6 +9,7 @@ class GoodAppOpen {
     required this.adUnitId,
     this.adRequest = const AdRequest(),
     required this.onPaidEvent,
+    required this.onAdLoaded,
     required this.onAdClicked,
     required this.onAdImpression,
     required this.onAdFailedToLoad,
@@ -17,6 +18,7 @@ class GoodAppOpen {
   final String adUnitId;
   final AdRequest adRequest;
   final OnPaidEventCallback onPaidEvent;
+  final void Function(int time, String adUnitId, String responseId) onAdLoaded;
   final void Function(int time, String adUnitId, String responseId) onAdClicked;
   final void Function(int time, String adUnitId, String responseId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
@@ -42,10 +44,12 @@ class GoodAppOpen {
           _appOpenLoadTime = DateTime.now();
           _appOpenAd = ad;
           result.complete(_appOpenAd);
+          onAdLoaded(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+              ad.responseInfo?.responseId ?? '');
         },
         onAdFailedToLoad: (error) {
           // Handle the error.
-          onAdFailedToLoad.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
+          onAdFailedToLoad(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId, error);
           result.complete(null);
         },
       ),
@@ -87,7 +91,7 @@ class GoodAppOpen {
     _appOpenAd!.onPaidEvent = onPaidEvent;
     _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdClicked: (AppOpenAd ad) {
-        onAdClicked.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+        onAdClicked(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
             ad.responseInfo?.responseId ?? '');
       },
       onAdShowedFullScreenContent: (ad) {
@@ -109,7 +113,7 @@ class GoodAppOpen {
         load();
       },
       onAdImpression: (ad) {
-        onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+        onAdImpression(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
             ad.responseInfo?.responseId ?? '');
       },
     );
