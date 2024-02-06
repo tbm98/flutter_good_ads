@@ -9,6 +9,7 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
     this.adRequest = const AdRequest(),
     this.adsPlaceholderColor,
     this.onLoadAdError,
+    this.onAdLoaded,
     this.onAdClicked,
     this.onAdImpression,
     this.onAdFailedToLoad,
@@ -19,6 +20,7 @@ class GoodBannerAdaptiveAnchored extends StatefulWidget {
   final AdRequest adRequest;
   final Color? adsPlaceholderColor;
   final void Function(Object, StackTrace)? onLoadAdError;
+  final void Function(int time, String adUnitId, String responseId)? onAdLoaded;
   final void Function(int time, String adUnitId, String responseId)? onAdClicked;
   final void Function(int time, String adUnitId, String responseId)? onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error)? onAdFailedToLoad;
@@ -111,6 +113,8 @@ class _GoodBannerAdaptiveAnchoredState extends State<GoodBannerAdaptiveAnchored>
               _bannerAd = ad as BannerAd;
               _isLoaded = true;
             });
+            widget.onAdLoaded?.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId!,
+                ad.responseInfo?.responseId ?? '');
           },
           onAdFailedToLoad: (Ad ad, LoadAdError error) {
             printDebug('onAdFailedToLoad($adUnitId): $error');

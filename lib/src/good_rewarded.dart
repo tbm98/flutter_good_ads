@@ -16,6 +16,7 @@ class GoodRewarded extends GoodAdsFullScreen {
     this.adRequest = const AdRequest(),
     this.interval = 60000,
     required this.onPaidEvent,
+    required this.onAdLoaded,
     required this.onAdClicked,
     required this.onAdImpression,
     required this.onAdFailedToLoad,
@@ -28,6 +29,7 @@ class GoodRewarded extends GoodAdsFullScreen {
   bool _isloaded = false;
   bool _isLoading = false;
   final OnPaidEventCallback onPaidEvent;
+  final void Function(int time, String adUnitId, String responseId) onAdLoaded;
   final void Function(int time, String adUnitId, String responseId) onAdClicked;
   final void Function(int time, String adUnitId, String responseId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
@@ -70,6 +72,8 @@ class GoodRewarded extends GoodAdsFullScreen {
           rewardedAd = ad;
           _isloaded = true;
           result.complete(ad);
+          onAdLoaded(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+              ad.responseInfo?.responseId ?? '');
         },
         onAdFailedToLoad: (LoadAdError error) {
           printInfo('REWARDED:onAdFailedToLoad($adUnitId): ${error.toString()}');
@@ -97,7 +101,7 @@ class GoodRewarded extends GoodAdsFullScreen {
       rewardedAd!.onPaidEvent = onPaidEvent;
       rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdClicked: (RewardedAd ad) {
-          onAdClicked.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+          onAdClicked(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
               ad.responseInfo?.responseId ?? '');
         },
         onAdShowedFullScreenContent: (RewardedAd ad) {
@@ -126,7 +130,7 @@ class GoodRewarded extends GoodAdsFullScreen {
         },
         onAdImpression: (RewardedAd ad) {
           printInfo('REWARDED:onAdImpression($adUnitId): ${ad.print()}');
-          onAdImpression.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+          onAdImpression(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
               ad.responseInfo?.responseId ?? '');
         },
       );
