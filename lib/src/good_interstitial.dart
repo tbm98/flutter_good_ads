@@ -16,6 +16,7 @@ class GoodInterstitial extends GoodAdsFullScreen {
     this.adRequest = const AdRequest(),
     this.interval = 60000,
     required this.onPaidEvent,
+    required this.onAdClicked,
     required this.onAdImpression,
     required this.onAdFailedToLoad,
   });
@@ -27,6 +28,7 @@ class GoodInterstitial extends GoodAdsFullScreen {
   bool _isloaded = false;
   bool _isLoading = false;
   final OnPaidEventCallback onPaidEvent;
+  final void Function(int time, String adUnitId, String responseId) onAdClicked;
   final void Function(int time, String adUnitId, String responseId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
 
@@ -91,6 +93,10 @@ class GoodInterstitial extends GoodAdsFullScreen {
     if (await canShow()) {
       interstitialAd!.onPaidEvent = onPaidEvent;
       interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdClicked: (InterstitialAd ad) {
+          onAdClicked.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+              ad.responseInfo?.responseId ?? '');
+        },
         onAdShowedFullScreenContent: (InterstitialAd ad) {
           printInfo('Interstitial:onAdShowedFullScreenContent($adUnitId): ${ad.print()}');
           onAdShowed?.call();

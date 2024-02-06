@@ -16,6 +16,7 @@ class GoodRewarded extends GoodAdsFullScreen {
     this.adRequest = const AdRequest(),
     this.interval = 60000,
     required this.onPaidEvent,
+    required this.onAdClicked,
     required this.onAdImpression,
     required this.onAdFailedToLoad,
   });
@@ -27,6 +28,7 @@ class GoodRewarded extends GoodAdsFullScreen {
   bool _isloaded = false;
   bool _isLoading = false;
   final OnPaidEventCallback onPaidEvent;
+  final void Function(int time, String adUnitId, String responseId) onAdClicked;
   final void Function(int time, String adUnitId, String responseId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
 
@@ -94,6 +96,10 @@ class GoodRewarded extends GoodAdsFullScreen {
     if (await canShow()) {
       rewardedAd!.onPaidEvent = onPaidEvent;
       rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdClicked: (RewardedAd ad) {
+          onAdClicked.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+              ad.responseInfo?.responseId ?? '');
+        },
         onAdShowedFullScreenContent: (RewardedAd ad) {
           printInfo('REWARDED:onAdShowedFullScreenContent($adUnitId): ${ad.print()}');
           onAdShowed?.call();
