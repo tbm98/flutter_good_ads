@@ -9,6 +9,7 @@ class GoodAppOpen {
     required this.adUnitId,
     this.adRequest = const AdRequest(),
     required this.onPaidEvent,
+    required this.onAdClicked,
     required this.onAdImpression,
     required this.onAdFailedToLoad,
   });
@@ -16,6 +17,7 @@ class GoodAppOpen {
   final String adUnitId;
   final AdRequest adRequest;
   final OnPaidEventCallback onPaidEvent;
+  final void Function(int time, String adUnitId, String responseId) onAdClicked;
   final void Function(int time, String adUnitId, String responseId) onAdImpression;
   final void Function(int time, String adUnitId, LoadAdError error) onAdFailedToLoad;
 
@@ -84,6 +86,10 @@ class GoodAppOpen {
     // Set the fullScreenContentCallback and show the ad.
     _appOpenAd!.onPaidEvent = onPaidEvent;
     _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdClicked: (AppOpenAd ad) {
+        onAdClicked.call(DateTime.now().toUtc().millisecondsSinceEpoch, adUnitId,
+            ad.responseInfo?.responseId ?? '');
+      },
       onAdShowedFullScreenContent: (ad) {
         _isShowingAd = true;
         onAdShowed?.call();
