@@ -95,16 +95,14 @@ class GoodInterstitial extends GoodAdsFullScreen {
     VoidCallback? onAdShowed,
     VoidCallback? onAdFailedToShow,
   }) async {
-    if (GoodAdsFullScreen.isShowing) {
-      onFinishedAds(false);
-      return;
-    }
-    if (!await canShow()) {
-      load();
+    if (GoodAdsFullScreen.isShowing &&
+        GoodAdsFullScreen.adNeedShow[AdFormat.interstitial] != true) {
+      print('good_ads:isShowing:${GoodAdsFullScreen.isShowing}');
       onFinishedAds(false);
       return;
     }
     if (_isShowingAd) {
+      print('good_ads:_isShowingAd:$_isShowingAd');
       onFinishedAds(false);
       return;
     }

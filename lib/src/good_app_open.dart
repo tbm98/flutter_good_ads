@@ -67,16 +67,18 @@ class GoodAppOpen {
     VoidCallback? onAdShowed,
     VoidCallback? onAdFailedToShow,
   }) async {
-    if (GoodAdsFullScreen.isShowing) {
-      onFinishedAds(false);
-      return;
-    }
     if (!isAdAvailable) {
       load();
       onFinishedAds(false);
       return;
     }
+    if (GoodAdsFullScreen.isShowing && GoodAdsFullScreen.adNeedShow[AdFormat.appOpen] != true) {
+      print('good_ads:isShowing:${GoodAdsFullScreen.isShowing}');
+      onFinishedAds(false);
+      return;
+    }
     if (_isShowingAd) {
+      print('good_ads:_isShowingAd:$_isShowingAd');
       onFinishedAds(false);
       return;
     }
