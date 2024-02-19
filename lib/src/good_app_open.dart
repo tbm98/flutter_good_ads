@@ -68,23 +68,23 @@ class GoodAppOpen {
     VoidCallback? onAdFailedToShow,
   }) async {
     if (GoodAdsFullScreen.isShowing) {
-      GoodAdsFullScreen.isShowing = false;
-      return;
-    }
-    if (GoodAdsFullScreen.isShowing) {
+      onFinishedAds(false);
       return;
     }
     if (!isAdAvailable) {
       load();
+      onFinishedAds(false);
       return;
     }
     if (_isShowingAd) {
+      onFinishedAds(false);
       return;
     }
     if (DateTime.now().subtract(maxCacheDuration).isAfter(_appOpenLoadTime!)) {
       _appOpenAd!.dispose();
       _appOpenAd = null;
       load();
+      onFinishedAds(false);
       return;
     }
     // Set the fullScreenContentCallback and show the ad.

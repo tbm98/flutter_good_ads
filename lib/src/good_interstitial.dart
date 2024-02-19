@@ -28,6 +28,7 @@ class GoodInterstitial extends GoodAdsFullScreen {
   final int interval;
   bool _isloaded = false;
   bool _isLoading = false;
+  bool _isShowingAd = false;
   final OnPaidEventCallback onPaidEvent;
   final void Function(int time, String adUnitId, String responseId) onAdLoaded;
   final void Function(int time, String adUnitId, String responseId) onAdClicked;
@@ -94,6 +95,19 @@ class GoodInterstitial extends GoodAdsFullScreen {
     VoidCallback? onAdShowed,
     VoidCallback? onAdFailedToShow,
   }) async {
+    if (GoodAdsFullScreen.isShowing) {
+      onFinishedAds(false);
+      return;
+    }
+    if (!await canShow()) {
+      load();
+      onFinishedAds(false);
+      return;
+    }
+    if (_isShowingAd) {
+      onFinishedAds(false);
+      return;
+    }
     if (await canShow()) {
       interstitialAd!.onPaidEvent = onPaidEvent;
       interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
@@ -103,6 +117,7 @@ class GoodInterstitial extends GoodAdsFullScreen {
         },
         onAdShowedFullScreenContent: (InterstitialAd ad) {
           printInfo('Interstitial:onAdShowedFullScreenContent($adUnitId): ${ad.print()}');
+          _isShowingAd = true;
           onAdShowed?.call();
         },
         onAdDismissedFullScreenContent: (InterstitialAd ad) {
@@ -110,6 +125,7 @@ class GoodInterstitial extends GoodAdsFullScreen {
           _isloaded = false;
           onFinishedAds(true);
           ad.dispose();
+          _isShowingAd = false;
           interstitialAd = null;
           load();
         },
@@ -120,6 +136,7 @@ class GoodInterstitial extends GoodAdsFullScreen {
           onAdFailedToShow?.call();
           onFinishedAds(false);
           ad.dispose();
+          _isShowingAd = false;
           interstitialAd = null;
           load();
         },

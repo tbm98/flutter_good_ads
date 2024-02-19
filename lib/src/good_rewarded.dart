@@ -28,6 +28,7 @@ class GoodRewarded extends GoodAdsFullScreen {
   final int interval;
   bool _isloaded = false;
   bool _isLoading = false;
+  bool _isShowingAd = false;
   final OnPaidEventCallback onPaidEvent;
   final void Function(int time, String adUnitId, String responseId) onAdLoaded;
   final void Function(int time, String adUnitId, String responseId) onAdClicked;
@@ -95,6 +96,19 @@ class GoodRewarded extends GoodAdsFullScreen {
     VoidCallback? onAdShowed,
     VoidCallback? onAdFailedToShow,
   }) async {
+    if (GoodAdsFullScreen.isShowing) {
+      onFinishedAds(false);
+      return;
+    }
+    if (!await canShow()) {
+      load();
+      onFinishedAds(false);
+      return;
+    }
+    if (_isShowingAd) {
+      onFinishedAds(false);
+      return;
+    }
     final showAt = DateTime.now().millisecondsSinceEpoch;
 
     if (await canShow()) {
@@ -106,6 +120,7 @@ class GoodRewarded extends GoodAdsFullScreen {
         },
         onAdShowedFullScreenContent: (RewardedAd ad) {
           printInfo('REWARDED:onAdShowedFullScreenContent($adUnitId): ${ad.print()}');
+          _isShowingAd = true;
           onAdShowed?.call();
         },
         onAdDismissedFullScreenContent: (RewardedAd ad) {
@@ -114,6 +129,7 @@ class GoodRewarded extends GoodAdsFullScreen {
           onFinishedAds(_rewarded[showAt] != null);
           _rewarded.clear();
           ad.dispose();
+          _isShowingAd = false;
           rewardedAd = null;
           load();
         },
@@ -125,6 +141,7 @@ class GoodRewarded extends GoodAdsFullScreen {
           onFinishedAds(false);
           _rewarded.clear();
           ad.dispose();
+          _isShowingAd = false;
           rewardedAd = null;
           load();
         },
