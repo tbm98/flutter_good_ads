@@ -78,7 +78,7 @@ class _GoodBannerAdaptiveAnchoredState extends State<GoodBannerAdaptiveAnchored>
   }
 
   Future<void> _loadAd() async {
-    if (!mounted) return;
+    // if (!mounted) return;
     try {
       // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
       size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
@@ -94,7 +94,7 @@ class _GoodBannerAdaptiveAnchoredState extends State<GoodBannerAdaptiveAnchored>
       }
 
       await _bannerAd?.dispose();
-      if (!mounted) return;
+      // if (!mounted) return;
 
       _bannerAd = BannerAd(
         adUnitId: adUnitId!,
